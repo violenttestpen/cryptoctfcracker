@@ -50,7 +50,7 @@ func main() {
 		output := xor.XOR(cipherbytes, key)
 		if !printable || xor.IsPrintable(output) {
 			if grep == "" || strings.Contains(string(output), grep) {
-				fmt.Println(key, '/', string(output))
+				fmt.Println(string(key), key, "=>", string(output))
 			}
 		}
 	}

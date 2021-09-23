@@ -11,14 +11,15 @@ import (
 )
 
 var (
-	a, c, m, next uint64
-	states        string
+	a, c, m string
+	next    uint64
+	states  string
 )
 
 func main() {
-	flag.Uint64Var(&a, "a", 0, "Multiplier")
-	flag.Uint64Var(&c, "c", 0, "Increment")
-	flag.Uint64Var(&m, "m", 0, "Modulus")
+	flag.StringVar(&a, "a", "", "Multiplier")
+	flag.StringVar(&c, "c", "", "Increment")
+	flag.StringVar(&m, "m", "", "Modulus")
 	flag.StringVar(&states, "states", "", "Comma-separated values of states in ascending order")
 	flag.Uint64Var(&next, "next", 0, "Generate the next `n` sequence of states")
 	flag.Parse()
@@ -39,15 +40,22 @@ func main() {
 
 	var err error
 	var multiplier, increment, modulus *big.Int
-	if m == 0 {
+	if m == "" {
 		fmt.Println("Cracking unknown modulus...")
 		multiplier, increment, modulus, err = lcg.CrackUnknownModulus(stateSlice)
-	} else if a == 0 && m != 0 {
+	} else if a == "" && m != "" {
 		fmt.Println("Cracking unknown multiplier...")
-		multiplier, increment, modulus, err = lcg.CrackUnknownMultiplier(stateSlice, new(big.Int).SetUint64(m))
-	} else if a != 0 && c == 0 && m != 0 {
+		bigM, ok := new(big.Int).SetString(m, 10)
+		if ok {
+			multiplier, increment, modulus, err = lcg.CrackUnknownMultiplier(stateSlice, bigM)
+		}
+	} else if a != "" && c == "" && m != "" {
 		fmt.Println("Cracking unknown increment...")
-		multiplier, increment, modulus, err = lcg.CrackUnknownIncrement(stateSlice, new(big.Int).SetUint64(m), new(big.Int).SetUint64(a))
+		bigM, okM := new(big.Int).SetString(m, 10)
+		bigA, okA := new(big.Int).SetString(a, 10)
+		if okM && okA {
+			multiplier, increment, modulus, err = lcg.CrackUnknownIncrement(stateSlice, bigM, bigA)
+		}
 	}
 
 	if err != nil {
